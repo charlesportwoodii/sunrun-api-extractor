@@ -3,16 +3,16 @@ use chrono::{prelude::*, Days};
 use reqwest::header::HeaderMap;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use std::fs;
 use std::path::Path;
 use std::str::FromStr;
-use std::{fs, process};
 use tracing::Level;
 use tracing::{error, info};
 use tracing_appender::non_blocking::NonBlocking;
 use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::fmt::SubscriberBuilder;
 
-use rusqlite::{Connection, Result};
+use rusqlite::Connection;
 
 extern crate tokio;
 
@@ -133,7 +133,7 @@ async fn main() -> anyhow::Result<()> {
     {
         Ok(response) => match response.json::<PerformanceMetrics>().await {
             Ok(data) => Some(data),
-            Err(e) => None,
+            Err(_) => None,
         },
         Err(e) => {
             error!("{}", e.to_string());
@@ -145,13 +145,16 @@ async fn main() -> anyhow::Result<()> {
         Some(data) => {
             info!("Fetched {} Records", data.len());
             let connection = Connection::open(Path::new("sunrun.sqlite3"))?;
-            connection.execute("CREATE TABLE IF NOT EXISTS solar (pv_solar NUMERIC, solar NUMBERIC, timestamp DATETIME)", ())?;
+            connection.execute("CREATE TABLE IF NOT EXISTS solar (pv_solar NUMERIC, solar NUMBERIC, timestamp DATETIME UNIQUE)", ())?;
             for row in data {
                 let s: SolarData = row.into();
-                connection.execute(
+                match connection.execute(
                     "INSERT INTO solar (pv_solar, solar, timestamp) VALUES (?1, ?2, ?3);",
                     (&s.pv_solar, &s.solar, &s.timestamp),
-                )?;
+                ) {
+                    Ok(_) => {}
+                    Err(_) => {}
+                };
             }
 
             connection.close().unwrap();
