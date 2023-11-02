@@ -1,0 +1,25 @@
+[package]
+name = "sunrun-data-api"
+authors = ["Charles R. Portwood II <charlesportwoodii@erianna.com>"]
+description = "Exfiltrates data from the Sunrun Performance API to an SQLite3 database for local parsing"
+repository = "https://github.com/charlesportwoodii/sunrun-data-api"
+version = "0.0.1"
+edition = "2021"
+
+[registries.crates-io]
+protocol = "sparse"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+reqwest = { version = "^0.11", default-features=false, features = ["json", "rustls-tls", "brotli", "gzip", "stream", "serde_json"] }
+tracing = { version = "^0.1" }
+tracing-subscriber = { version = "^0.3" }
+tracing-appender = { version = "^0.2" }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["raw_value"] }
+hcl-rs = { version = "^0.8" }
+rusqlite = { version = "0.29.0", features = ["bundled"] }
+anyhow = { version = "^1.0" }
+tokio = { version = "^1.11", features = ["full"] }
+chrono = { version = "^0.4" }
